@@ -64,9 +64,37 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Registration failed:', error);
+      console.error('Error response:', error.response?.data);
+      
+      // 서버에서 반환한 상세 에러 메시지 처리
+      let errorMessage = '회원가입에 실패했습니다.';
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // 필드별 에러 메시지 처리
+        if (typeof errorData === 'object') {
+          const errorMessages = [];
+          for (const [field, messages] of Object.entries(errorData)) {
+            if (Array.isArray(messages)) {
+              errorMessages.push(...messages);
+            } else if (typeof messages === 'string') {
+              errorMessages.push(messages);
+            }
+          }
+          if (errorMessages.length > 0) {
+            errorMessage = errorMessages.join(' ');
+          }
+        } else if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      }
+      
       return { 
         success: false, 
-        error: error.response?.data?.message || '회원가입에 실패했습니다.' 
+        error: errorMessage
       };
     }
   };

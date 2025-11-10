@@ -492,23 +492,18 @@ function ClinicDetailPage() {
     );
   }
 
-  // Mock data for demonstration
+  // 실제 API 데이터 사용 (clinic 객체에서)
   const mockData = {
-    comprehensive_score: 4.2,
-    aspect_scores: {
-      price: 4.1,
-      skill: 4.3,
-      kindness: 4.0,
-      waiting: 3.8,
-      facility: 4.2,
-      overtreatment: 4.5
+    comprehensive_score: clinic.average_rating || 0,
+    aspect_scores: clinic.aspect_scores || {
+      price: 0,
+      skill: 0,
+      kindness: 0,
+      waiting: 0,
+      facility: 0,
+      overtreatment: 0
     },
-    price_info: [
-      { treatment: '스케일링', price: 80000, region_avg: 95000 },
-      { treatment: '임플란트', price: 1200000, region_avg: 1350000 },
-      { treatment: '신경치료', price: 150000, region_avg: 180000 },
-      { treatment: '교정', price: 3500000, region_avg: 4200000 }
-    ]
+    price_info: clinic.price_info || []
   };
 
   return (
@@ -536,7 +531,7 @@ function ClinicDetailPage() {
             
             <ScoreSection>
               <OverallScore>
-                <ScoreValue>{mockData.comprehensive_score.toFixed(1)}</ScoreValue>
+                <ScoreValue>{(clinic.average_rating || 0).toFixed(1)}</ScoreValue>
                 <ScoreLabel>종합 점수</ScoreLabel>
               </OverallScore>
               <ReviewCount>

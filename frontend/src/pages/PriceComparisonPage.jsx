@@ -261,9 +261,13 @@ function PriceComparisonPage() {
     setHasSearched(true);
 
     try {
+      // 한국어 치료명을 영어 코드로 변환
+      const treatmentCode = getTreatmentCode(selectedTreatment);
+      console.log('Searching with:', { district: selectedDistrict, treatment_type: treatmentCode });
+      
       const response = await priceAPI.getComparison({
         district: selectedDistrict,
-        treatment_type: selectedTreatment
+        treatment_type: treatmentCode
       });
 
       setPriceData(response.data.prices || []);

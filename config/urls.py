@@ -29,4 +29,4 @@ if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
     ] + urlpatterns
 
 # SPA Fallback
-urlpatterns.append(re_path(r'^.*$', TemplateView.as_view(template_name='index.html')))
+urlpatterns.append(path('', TemplateView.as_view(template_name='index.html')))
