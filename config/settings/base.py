@@ -27,8 +27,8 @@ THIRD_PARTY_APPS = [
     'corsheaders',
     'django_extensions',
     'django_filters',
-    # 'django_celery_beat',  # 프로덕션에서 임시 비활성화
-    # 'django_celery_results',  # 프로덕션에서 임시 비활성화
+    'django_celery_beat',
+    'django_celery_results',
     'drf_yasg',
 ]
 
