@@ -6,10 +6,15 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from apps.clinics.health_views import health_check, readiness_check, liveness_check
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('apps.api.urls')),
+    # Health check endpoints
+    path('api/health/', health_check, name='health_check'),
+    path('api/ready/', readiness_check, name='readiness_check'),
+    path('api/alive/', liveness_check, name='liveness_check'),
 ]
 
 # Serve media files in development
