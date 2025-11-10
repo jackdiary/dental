@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리뷰 테스트</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .review-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #fafafa;
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .review-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            padding: 20px;
+        }
+        .clinic-info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦷 치과 리뷰 테스트</h1>
+        
+        <div class="clinic-info">
+            <h3>테스트할 치과 선택:</h3>
+            <button onclick="loadReviews(223)">강서미소치과의원 (ID: 223)</button>
+            <button onclick="loadReviews(224)">발산연세치과의원 (ID: 224)</button>
+            <button onclick="loadReviews(225)">화곡바른치과의원 (ID: 225)</button>
+        </div>
+        
+        <div id="clinic-name"></div>
+        <div id="reviews-container">
+            <div class="loading">치과를 선택해주세요.</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadReviews(clinicId) {
+            const container = document.getElementById('reviews-container');
+            const clinicNameDiv = document.getElementById('clinic-name');
+            
+            container.innerHTML = '<div class="loading">리뷰를 불러오는 중...</div>';
+            clinicNameDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch(`http://localhost:8000/api/reviews/clinic/${clinicId}/`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                clinicNameDiv.innerHTML = `<h2>📍 ${data.clinic_name} (총 ${data.total_count}개 리뷰)</h2>`;
+                
+                if (data.reviews && data.reviews.length > 0) {
+                    let html = '';
+                    data.reviews.forEach((review, index) => {
+                        const reviewDate = review.review_date 
+                            ? new Date(review.review_date).toLocaleDateString('ko-KR')
+                            : new Date(review.created_at).toLocaleDateString('ko-KR');
+                        
+                        html += `
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <span>⭐ ${review.rating}/5 | 출처: ${review.source === 'naver' ? '네이버' : review.source}</span>
+                                    <span>${reviewDate}</span>
+                                </div>
+                                <div class="review-text">${review.text}</div>
+                                <div style="font-size: 12px; color: #999; margin-top: 8px;">
+                                    리뷰어: ${review.reviewer_hash}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<div class="loading">리뷰가 없습니다.</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                container.innerHTML = `<div class="error">리뷰 로드 실패: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

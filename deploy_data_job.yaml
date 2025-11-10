@@ -1,0 +1,34 @@
+# Cloud Run Job 설정 - 대량 데이터 배포용
+apiVersion: run.googleapis.com/v1
+kind: Job
+metadata:
+  name: dental-ai-data-deploy
+  namespace: dental-ai-2024
+spec:
+  template:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: data-deploy
+            image: gcr.io/dental-ai-2024/dental-ai-backend:latest
+            command:
+            - /bin/bash
+            - -c
+            - |
+              echo "🚀 대량 데이터 배포 시작..."
+              python create_massive_data.py
+              echo "✅ 데이터 배포 완료!"
+            env:
+            - name: DJANGO_SETTINGS_MODULE
+              value: config.settings.production
+            - name: GCP_PROJECT_ID
+              value: dental-ai-2024
+            - name: GCP_REGION
+              value: asia-northeast3
+            resources:
+              limits:
+                cpu: "2"
+                memory: 2Gi
+          serviceAccountName: dental-ai-service-account
+          timeoutSeconds: 3600  # 1시간 타임아웃

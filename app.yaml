@@ -1,0 +1,44 @@
+# Google App Engine 설정
+runtime: python311
+
+env_variables:
+  # Django 설정
+  SECRET_KEY: "asd1004!!"
+  DEBUG: "False"
+  ALLOWED_HOSTS: "your-app-id.appspot.com,your-custom-domain.com"
+  
+  # 데이터베이스 설정 (Cloud SQL)
+  DB_NAME: "dental_ai"
+  DB_USER: "dental_user"
+  DB_PASSWORD: "your-production-password"
+  DB_HOST: "/cloudsql/your-project-id:region:instance-name"
+  DB_PORT: "5432"
+  
+  # Redis 설정 (Cloud Memorystore)
+  REDIS_URL: "redis://your-redis-ip:6379/1"
+  
+  # Celery 설정
+  CELERY_BROKER_URL: "redis://your-redis-ip:6379/0"
+  CELERY_RESULT_BACKEND: "redis://your-redis-ip:6379/0"
+  
+
+# 정적 파일 처리
+handlers:
+- url: /static
+  static_dir: staticfiles/
+
+- url: /.*
+  script: auto
+  secure: always
+
+# 자동 스케일링 설정
+automatic_scaling:
+  min_instances: 1
+  max_instances: 10
+  target_cpu_utilization: 0.6
+
+# 리소스 설정
+resources:
+  cpu: 1
+  memory_gb: 2
+  disk_size_gb: 10

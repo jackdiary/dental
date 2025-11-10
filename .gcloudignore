@@ -1,0 +1,55 @@
+# Default from gcloud
+.gcloudignore
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+/venv/
+pip-selfcheck.json
+
+# Node.js / frontend build artifacts
+/node_modules/
+/frontend/node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and media
+*.log
+logs/
+media/
+
+# Data and scripts
+massive_*.txt
+sql_insert_*.sql
+scripts/
+database_insert_commands.txt
+export_data_to_txt.py
+generate_sql_inserts.py
+test_real_crawling.py
+test_reviews.html
+check_data.py
+create_massive_data.py
+create_real_clinic_data.py
+deploy_data_job.yaml
+deploy_data_to_cloud_sql.py
+export_data_to_txt.py
+generate_sql_inserts.py
+test_real_crawling.py
+test_reviews.html
+
+# Kiro
+.kiro/
+/1920.jpg
+/ml_models/

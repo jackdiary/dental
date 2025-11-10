@@ -1,0 +1,243 @@
+🦷 치과 추천 AI 시스템 - 실행 순서 가이드
+=================================================
+
+📋 시스템 요구사항
+-----------------
+- Python 3.9 이상
+- Node.js 16 이상
+- Git
+- 메모리: 4GB RAM (권장: 8GB)
+- 저장공간: 2GB 여유 공간
+
+🚀 1단계: 프로젝트 준비
+-----------------------
+1. 프로젝트 클론
+   git clone https://github.com/your-username/dental-ai.git
+   cd dental-ai
+
+2. 프로젝트 구조 확인
+   - frontend/     (React 프론트엔드)
+   - apps/         (Django 앱들)
+   - utils/        (유틸리티 및 ML 모델)
+   - scripts/      (데이터 생성 스크립트)
+   - docs/         (문서)
+
+⚙️ 2단계: 백엔드 설정 및 실행
+-----------------------------
+1. 가상환경 생성 및 활성화
+   # Windows
+   python -m venv venv
+   venv\Scripts\activate
+   
+   # macOS/Linux
+   python3 -m venv venv
+   source venv/bin/activate
+
+2. 의존성 설치
+   pip install -r requirements.txt
+
+3. 환경 변수 설정 (선택사항)
+   # .env 파일이 있다면
+   cp .env.example .env
+   # 필요시 .env 파일 편집
+
+4. 데이터베이스 마이그레이션
+   python manage.py migrate
+
+5. 더미 데이터 생성 (중요!)
+   python scripts/create_final_dummy_data.py
+   
+   # 성공 시 다음과 같은 메시지 출력:
+   # ✅ 최종 더미 데이터 생성 완료!
+   # 📊 생성된 데이터:
+   #    - 치과: 30개
+   #    - 리뷰: 589개
+   #    - 감성분석: 589개
+   #    - 가격데이터: 194개
+
+6. 백엔드 서버 실행
+   python manage.py runserver
+   
+   # 성공 시 메시지:
+   # Starting development server at http://127.0.0.1:8000/
+
+🎨 3단계: 프론트엔드 설정 및 실행
+-------------------------------
+1. 새 터미널 열기 (백엔드 서버는 계속 실행)
+
+2. 프론트엔드 디렉토리로 이동
+   cd frontend
+
+3. 의존성 설치
+   npm install
+
+4. 환경 변수 설정 (선택사항)
+   # frontend/.env 파일 생성 (필요시)
+   VITE_API_BASE_URL=http://localhost:8000/api
+
+5. 프론트엔드 서버 실행
+   npm run dev
+   
+   # 성공 시 메시지:
+   # ➜  Local:   http://localhost:3002/
+   # (포트는 3000, 3001이 사용 중이면 자동으로 3002 사용)
+
+🌐 4단계: 접속 및 확인
+---------------------
+1. 웹 브라우저에서 접속
+   - 프론트엔드: http://localhost:3002
+   - 백엔드 API: http://localhost:8000
+   - API 문서: http://localhost:8000/api/swagger/
+   - 관리자 페이지: http://localhost:8000/admin/
+
+2. 테스트 계정 (더미 데이터 생성 시 자동 생성됨)
+   - 관리자: admin / admin123!
+   - 일반 사용자: testuser1 / test123!
+
+🔍 5단계: 기능 테스트
+--------------------
+1. 메인 페이지 (http://localhost:3002)
+   ✅ 페이지 로딩 확인
+   ✅ 헤더 메뉴 (홈, 치과 찾기, 가격 비교, 리뷰 분석) 확인
+
+2. 치과 검색 테스트
+   - "치과 찾기" 클릭
+   - 지역 선택: "강남구"
+   - 검색 버튼 클릭
+   - 결과: 치과 목록 표시 확인
+
+3. 가격 비교 테스트
+   - "가격 비교" 클릭
+   - 지역: "강남구", 치료: "스케일링" 선택
+   - 검색 버튼 클릭
+   - 결과: 가격 비교 테이블 확인
+
+4. 리뷰 분석 테스트
+   - "리뷰 분석" 클릭
+   - 지역: "강남구" 선택
+   - 치과: 목록에서 아무 치과 선택
+   - 분석 버튼 클릭
+   - 결과: 감성 분석 차트 확인
+
+5. 치과 상세 페이지 테스트
+   - 검색 결과에서 치과명 클릭
+   - 상세 페이지 이동 확인
+   - 키워드 태그 TOP 3 표시 확인
+   - 편의시설 정보 확인
+
+🛠️ 6단계: 개발 도구 활용
+------------------------
+1. API 문서 확인
+   - Swagger UI: http://localhost:8000/api/swagger/
+   - ReDoc: http://localhost:8000/api/redoc/
+
+2. 관리자 페이지 접속
+   - URL: http://localhost:8000/admin/
+   - 계정: admin / admin123!
+   - 데이터 확인 및 관리 가능
+
+3. 데이터베이스 확인
+   python manage.py shell
+   
+   # Django shell에서 데이터 확인
+   from apps.clinics.models import Clinic
+   print(f"총 치과 수: {Clinic.objects.count()}")
+   
+   from apps.reviews.models import Review
+   print(f"총 리뷰 수: {Review.objects.count()}")
+
+🐛 문제 해결
+-----------
+1. 포트 충돌 오류
+   # 다른 포트 사용
+   python manage.py runserver 8001
+   npm run dev -- --port 3001
+
+2. 모듈 import 오류
+   # 가상환경 재활성화
+   source venv/bin/activate  # macOS/Linux
+   venv\Scripts\activate     # Windows
+   pip install -r requirements.txt
+
+3. 데이터베이스 오류
+   # 데이터베이스 초기화
+   rm db.sqlite3  # Windows: del db.sqlite3
+   python manage.py migrate
+   python scripts/create_final_dummy_data.py
+
+4. 프론트엔드 빌드 오류
+   # 캐시 정리 후 재설치
+   npm cache clean --force
+   rm -rf node_modules package-lock.json  # Windows: rmdir /s node_modules, del package-lock.json
+   npm install
+
+5. CORS 오류
+   # settings.py에서 CORS 설정 확인
+   CORS_ALLOWED_ORIGINS = [
+       "http://localhost:3000",
+       "http://localhost:3002",
+   ]
+
+📊 데이터 현황 확인
+-----------------
+더미 데이터 생성 후 다음 데이터가 생성됩니다:
+
+- 치과: 30개 (서울 10개 구)
+  * 강남구, 서초구, 송파구, 강동구, 마포구
+  * 용산구, 성동구, 광진구, 종로구, 중구
+
+- 리뷰: 589개 (실제 리뷰 패턴 기반)
+  * 긍정 리뷰 70%, 부정 리뷰 30%
+  * 6가지 측면별 감성 분석 완료
+
+- 가격 데이터: 194개 (10가지 치료)
+  * 스케일링, 임플란트, 신경치료, 교정, 미백
+  * 발치, 충치치료, 크라운, 브릿지, 틀니
+
+- 편의시설: 치과별 차별화
+  * 주차 가능/불가능
+  * 야간 진료 가능/불가능
+  * 주말 진료 가능/불가능
+
+🎯 주요 기능 확인 포인트
+----------------------
+1. BERT 감성 분석
+   - 6가지 측면별 점수 (-1 ~ +1)
+   - 신뢰도 85% 이상
+
+2. 가격 비교
+   - 지역별 최저가, 평균가, 최고가
+   - 치과별 가격 차이 표시
+
+3. 키워드 분석
+   - 치과 상세 페이지에서 TOP 3 키워드 태그
+   - 자주 언급되는 단어와 횟수 표시
+
+4. 위치 기반 검색
+   - GPS 현재 위치 감지
+   - 반경 1km ~ 20km 설정 가능
+
+🚀 배포 준비 (선택사항)
+---------------------
+1. Docker 빌드
+   docker build -t dental-ai-backend .
+   cd frontend && docker build -t dental-ai-frontend .
+
+2. Google Cloud 배포
+   docs/DEPLOYMENT_GUIDE.md 참조
+
+📞 지원 및 문의
+--------------
+- 문제 발생 시: GitHub Issues 등록
+- 문서: docs/ 폴더의 상세 가이드 참조
+- API 문서: http://localhost:8000/api/swagger/
+
+=================================================
+✅ 실행 완료 후 확인사항:
+- [ ] 백엔드 서버 정상 실행 (http://localhost:8000)
+- [ ] 프론트엔드 서버 정상 실행 (http://localhost:3002)
+- [ ] 더미 데이터 생성 완료 (30개 치과, 589개 리뷰)
+- [ ] 모든 페이지 정상 로딩
+- [ ] 검색, 가격비교, 리뷰분석 기능 동작
+- [ ] 치과 상세 페이지 키워드 태그 표시
+=================================================

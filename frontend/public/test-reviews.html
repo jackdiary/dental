@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦷 실제 크롤링 리뷰 테스트</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .clinic-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .clinic-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+        .clinic-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .clinic-btn .name {
+            display: block;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .clinic-btn .info {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .review-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #fafafa;
+            transition: all 0.3s ease;
+        }
+        .review-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .rating {
+            background: #ff6b6b;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+        .date {
+            color: #666;
+        }
+        .review-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .review-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+            font-size: 18px;
+        }
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            padding: 30px;
+            background: #ffeaea;
+            border-radius: 10px;
+            border: 1px solid #f5c6cb;
+        }
+        .stats {
+            background: #e8f4fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .stats h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        .no-reviews {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦷 실제 크롤링 리뷰 테스트</h1>
+            <p>강서구, 강남구, 영등포구 300개 치과의 실제 네이버 플레이스 리뷰 데이터</p>
+        </div>
+        
+        <div class="clinic-buttons">
+            <button class="clinic-btn" onclick="loadReviews(223)">
+                <span class="name">🏥 강서미소치과의원</span>
+                <span class="info">강서구 | ID: 223</span>
+            </button>
+            <button class="clinic-btn" onclick="loadReviews(224)">
+                <span class="name">🏥 발산연세치과의원</span>
+                <span class="info">강서구 | ID: 224</span>
+            </button>
+            <button class="clinic-btn" onclick="loadReviews(323)">
+                <span class="name">🏥 강남미소치과의원</span>
+                <span class="info">강남구 | ID: 323</span>
+            </button>
+            <button class="clinic-btn" onclick="loadReviews(423)">
+                <span class="name">🏥 영등포미소치과의원</span>
+                <span class="info">영등포구 | ID: 423</span>
+            </button>
+        </div>
+        
+        <div id="clinic-info"></div>
+        <div id="reviews-container">
+            <div class="loading">👆 위에서 치과를 선택해주세요</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadReviews(clinicId) {
+            const container = document.getElementById('reviews-container');
+            const infoDiv = document.getElementById('clinic-info');
+            
+            container.innerHTML = '<div class="loading">🔄 실제 리뷰 데이터를 불러오는 중...</div>';
+            infoDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch(`http://localhost:8000/api/reviews/clinic/${clinicId}/`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('API Response:', data);
+                
+                // 치과 정보 표시
+                infoDiv.innerHTML = `
+                    <div class="stats">
+                        <h3>📍 ${data.clinic_name}</h3>
+                        <p><strong>총 ${data.total_count}개</strong>의 실제 크롤링 리뷰</p>
+                    </div>
+                `;
+                
+                if (data.reviews && data.reviews.length > 0) {
+                    let html = '';
+                    data.reviews.forEach((review, index) => {
+                        const reviewDate = review.review_date 
+                            ? new Date(review.review_date).toLocaleDateString('ko-KR')
+                            : new Date(review.created_at).toLocaleDateString('ko-KR');
+                        
+                        html += `
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <span class="rating">⭐ ${review.rating}/5</span>
+                                    <span class="date">📅 ${reviewDate}</span>
+                                </div>
+                                <div class="review-text">${review.text}</div>
+                                <div class="review-meta">
+                                    <span>📍 출처: ${review.source === 'naver' ? '네이버 플레이스' : review.source}</span>
+                                    <span>👤 ${review.reviewer_hash}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = `
+                        <div class="no-reviews">
+                            <h3>😔 리뷰가 없습니다</h3>
+                            <p>이 치과는 아직 리뷰가 크롤링되지 않았습니다.</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                container.innerHTML = `
+                    <div class="error">
+                        <h3>❌ 리뷰 로드 실패</h3>
+                        <p><strong>오류:</strong> ${error.message}</p>
+                        <p><small>콘솔을 확인하여 자세한 정보를 확인하세요.</small></p>
+                    </div>
+                `;
+            }
+        }
+
+        // 페이지 로드 시 첫 번째 치과 자동 로드
+        window.addEventListener('load', () => {
+            loadReviews(223);
+        });
+    </script>
+</body>
+</html>

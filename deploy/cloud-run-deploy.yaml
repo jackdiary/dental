@@ -1,0 +1,66 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: dental-ai-backend
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/cloudsql-instances: dental-ai-2024:asia-northeast3:dental-ai-db
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/memory: "1Gi"
+        run.googleapis.com/cpu: "1000m"
+        run.googleapis.com/max-scale: "10"
+        run.googleapis.com/min-scale: "0"
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+      - image: gcr.io/dental-ai-2024/dental-ai-backend:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: GCP_PROJECT_ID
+          value: "dental-ai-2024"
+        - name: GCP_REGION
+          value: "asia-northeast3"
+        - name: DJANGO_SETTINGS_MODULE
+          value: "config.settings.production"
+        - name: DATABASE_URL
+          value: "postgresql://dental_user:dental_password_2024@/dental_ai?host=/cloudsql/dental-ai-2024:asia-northeast3:dental-ai-db"
+        - name: REDIS_URL
+          value: "redis://10.252.26.155:6379/0"
+        - name: GS_BUCKET_NAME
+          value: "dental-ai-2024-static"
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: django-secrets
+              key: secret-key
+        - name: ALLOWED_HOSTS
+          value: "*.run.app,dental-ai-2024.run.app"
+        - name: CORS_ALLOWED_ORIGINS
+          value: "https://dental-ai-2024.web.app"
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /api/health/
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health/
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3

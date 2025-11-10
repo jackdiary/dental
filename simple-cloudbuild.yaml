@@ -1,0 +1,16 @@
+steps:
+  # 백엔드 이미지 빌드만
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-f', 'Dockerfile.backend',
+      '-t', 'gcr.io/$PROJECT_ID/backend:latest',
+      '.'
+    ]
+
+  # 이미지 푸시
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/backend:latest']
+
+images:
+  - 'gcr.io/$PROJECT_ID/backend:latest'
