@@ -1,77 +1,39 @@
-#!/bin/bash
-# AWS EC2 배포 스크립트
+#!/usr/bin/env bash
+# AWS EC2 배포 스크립트 (docker-compose 기반)
+# 프런트 빌드 → 백엔드 이미지 빌드 → collectstatic → migrate → Gunicorn 순서를 강제한다.
 
-set -e
+set -euo pipefail
 
-echo "🚀 AWS EC2 배포 시작..."
+export DJANGO_SETTINGS_MODULE="config.settings.aws"
 
-# 변수 설정
-EC2_IP="3.36.129.103"
-PEM_KEY="den.pem"
-EC2_USER="ubuntu"
-PROJECT_NAME="dental-ai"
-REMOTE_DIR="/home/$EC2_USER/$PROJECT_NAME"
+PROJECT_DIR="${PROJECT_DIR:-/home/ubuntu/hosptal}"
+COMPOSE_BIN="sudo docker compose -f docker-compose.aws.yml"
 
-echo "📦 프로젝트 파일 압축 중..."
-tar -czf deploy.tar.gz \
-    --exclude='venv' \
-    --exclude='node_modules' \
-    --exclude='__pycache__' \
-    --exclude='.git' \
-    --exclude='*.pyc' \
-    --exclude='*.log' \
-    --exclude='db.sqlite3' \
-    --exclude='staticfiles' \
-    --exclude='media' \
-    --exclude='*.pem' \
-    .
+echo "🚀 AWS EC2 배포 시작 - 프로젝트 디렉터리: ${PROJECT_DIR}"
+cd "${PROJECT_DIR}"
 
-echo "📤 파일 업로드 중..."
-scp -i $PEM_KEY deploy.tar.gz $EC2_USER@$EC2_IP:~
+echo "[1/7] 최신 main 브랜치 동기화"
+git fetch origin main
+git reset --hard origin/main
 
-echo "🔧 서버에서 배포 실행 중..."
-ssh -i $PEM_KEY $EC2_USER@$EC2_IP << 'ENDSSH'
-    set -e
-    
-    PROJECT_NAME="dental-ai"
-    REMOTE_DIR="/home/ubuntu/$PROJECT_NAME"
-    
-    echo "📁 프로젝트 디렉토리 준비..."
-    mkdir -p $REMOTE_DIR
-    cd $REMOTE_DIR
-    
-    echo "📦 파일 압축 해제..."
-    tar -xzf ~/deploy.tar.gz -C $REMOTE_DIR
-    rm ~/deploy.tar.gz
-    
-    echo "🐍 Python 가상환경 설정..."
-    if [ ! -d "venv" ]; then
-        python3 -m venv venv
-    fi
-    source venv/bin/activate
-    
-    echo "📚 Python 패키지 설치..."
-    pip install --upgrade pip
-    pip install -r requirements.txt
-    
-    echo "🗄️ 데이터베이스 마이그레이션..."
-    export DJANGO_SETTINGS_MODULE=config.settings.aws
-    python manage.py migrate
-    
-    echo "📦 정적 파일 수집..."
-    python manage.py collectstatic --noinput
-    
-    echo "🔄 Gunicorn 재시작..."
-    sudo systemctl restart gunicorn || echo "Gunicorn 서비스가 없습니다. 수동으로 시작해주세요."
-    
-    echo "🔄 Nginx 재시작..."
-    sudo systemctl restart nginx || echo "Nginx 서비스가 없습니다."
-    
-    echo "✅ 배포 완료!"
-ENDSSH
+echo "[2/7] 프런트엔드 포함 백엔드 이미지 빌드"
+${COMPOSE_BIN} build web
 
-echo "🧹 로컬 임시 파일 정리..."
-rm deploy.tar.gz
+echo "[3/7] 웹 컨테이너 재기동 (Gunicorn 포함)"
+${COMPOSE_BIN} up -d web
 
-echo "✅ AWS EC2 배포 완료!"
-echo "🌐 접속 주소: http://$EC2_IP"
+echo "[4/7] 정적/미디어 경로 준비"
+${COMPOSE_BIN} exec web mkdir -p /app/static /app/staticfiles/assets /app/media
+
+echo "[5/7] 정적 파일 수집 (collectstatic)"
+${COMPOSE_BIN} exec -e DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} web \
+  python manage.py collectstatic --noinput
+
+echo "[6/7] 데이터베이스 마이그레이션"
+${COMPOSE_BIN} exec -e DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} web \
+  python manage.py migrate --noinput
+
+echo "[7/7] 내부 헬스 체크"
+${COMPOSE_BIN} exec web curl -f http://localhost:8000/api/health/
+
+echo "✅ 배포 완료! 필요한 경우 'sudo docker compose -f docker-compose.aws.yml logs -f web'로 로그를 확인하세요."

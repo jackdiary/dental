@@ -24,6 +24,7 @@ RUN apt-get update \
         libpq-dev \
         wget \
         gnupg \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Chrome for Selenium
