@@ -7,12 +7,14 @@ export default defineConfig({
     port: 3000,
   },
   build: {
-    base: '/static/',
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: false,
     rollupOptions: {
       output: {
+        assetFileNames: 'static/assets/[name]-[hash][extname]',
+        chunkFileNames: 'static/js/[name]-[hash].js',
+        entryFileNames: 'static/js/[name]-[hash].js',
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
