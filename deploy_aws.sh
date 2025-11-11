@@ -21,6 +21,8 @@ ${COMPOSE_BIN} build web
 
 echo "[3/7] 웹 컨테이너 재기동 (Gunicorn 포함)"
 ${COMPOSE_BIN} up -d web
+echo "컨테이너 시작 대기 중..."
+sleep 10 # 컨테이너 시작을 위한 충분한 시간 제공
 
 echo "[4/7] 정적/미디어 경로 준비"
 ${COMPOSE_BIN} exec web mkdir -p /app/static /app/staticfiles /app/media
@@ -28,12 +30,16 @@ ${COMPOSE_BIN} exec web mkdir -p /app/static /app/staticfiles /app/media
 echo "[5/7] 정적 파일 수집 (collectstatic)"
 ${COMPOSE_BIN} exec -e DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} web \
   python manage.py collectstatic --noinput
+sleep 5 # collectstatic 완료 대기
 
 echo "[6/7] 데이터베이스 마이그레이션"
 ${COMPOSE_BIN} exec -e DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} web \
   python manage.py migrate --noinput
+sleep 5 # migrate 완료 대기
 
 echo "[7/7] 내부 헬스 체크"
+echo "Gunicorn 시작 및 초기화 대기 중..."
+sleep 30 # Gunicorn이 완전히 시작되고 요청을 처리할 준비가 될 때까지 대기
 ${COMPOSE_BIN} exec web curl -f http://localhost:8000/api/health/
 
 echo "✅ 배포 완료! 필요한 경우 'sudo docker compose -f docker-compose.aws.yml logs -f web'로 로그를 확인하세요."
