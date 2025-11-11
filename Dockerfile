@@ -1,3 +1,12 @@
+# Stage 1: Build frontend assets
+FROM node:18-alpine AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ .
+RUN npm run build
+
+# Stage 2: Build the final backend image
 FROM python:3.11-slim
 
 # Set environment variables
@@ -24,13 +33,16 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --d
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy built frontend assets from the builder stage
+COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist/
+
 # Install Python dependencies
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir gunicorn
 
-# Copy project
+# Copy project source code
 COPY . /app/
 
 # Create directories
@@ -40,5 +52,3 @@ RUN mkdir -p /app/logs /app/ml_models /app/staticfiles /app/media \
 # Expose port
 EXPOSE 8000
 
-# Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "config.wsgi:application"]

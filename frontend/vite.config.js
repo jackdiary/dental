@@ -7,6 +7,7 @@ export default defineConfig({
     port: 3000,
   },
   build: {
+    base: '/static/',
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: false,

@@ -526,27 +526,27 @@ function HomePage() {
 
       <StatsSection>
         <FeaturesContainer>
-          <SectionTitle>신뢰할 수 있는 데이터</SectionTitle>
+          <SectionTitle>치과AI 현황</SectionTitle>
           <SectionSubtitle>
-            방대한 데이터를 기반으로 한 정확한 분석 결과를 제공합니다
+            많은 사용자들이 치과AI를 통해 만족스러운 치과를 찾고 있습니다
           </SectionSubtitle>
 
           <StatsGrid>
             <StatItem>
-              <h3>1,000+</h3>
-              <p>분석된 치과</p>
+              <h3>15,000+</h3>
+              <p>등록된 치과</p>
             </StatItem>
             <StatItem>
               <h3>50,000+</h3>
-              <p>수집된 리뷰</p>
+              <p>누적 사용자</p>
             </StatItem>
             <StatItem>
-              <h3>95%</h3>
-              <p>분석 정확도</p>
+              <h3>200,000+</h3>
+              <p>분석된 리뷰</p>
             </StatItem>
             <StatItem>
-              <h3>24시간</h3>
-              <p>실시간 업데이트</p>
+              <h3>98%</h3>
+              <p>사용자 만족도</p>
             </StatItem>
           </StatsGrid>
         </FeaturesContainer>
