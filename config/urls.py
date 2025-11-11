@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 from apps.clinics.health_views import health_check, readiness_check, liveness_check
 
 urlpatterns = [
@@ -15,6 +15,9 @@ urlpatterns = [
     path('api/health/', health_check, name='health_check'),
     path('api/ready/', readiness_check, name='readiness_check'),
     path('api/alive/', liveness_check, name='liveness_check'),
+    # Favicon and other root-level static files
+    path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico', permanent=True)),
+    path('favicon.svg', RedirectView.as_as_view(url='/static/favicon.svg', permanent=True)),
 ]
 
 # Serve static and media files
