@@ -146,6 +146,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
     os.path.join(BASE_DIR, 'frontend', 'dist'),
 ]
+# STATIC_FILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
@@ -276,12 +277,6 @@ ML_MODELS_DIR = BASE_DIR / 'ml_models'
 # Development Settings
 if DEBUG:
     INSTALLED_APPS += ['debug_toolbar']
-    MIDDLEWARE = [
-        'django.middleware.security.SecurityMiddleware',
-        'whitenoise.middleware.WhiteNoiseMiddleware',  # 이 줄을 추가하세요
-        'django.contrib.sessions.middleware.SessionMiddleware',
-    # ... 나머지 미들웨어
-]
+    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
     INTERNAL_IPS = ['127.0.0.1']
-    # WhiteNoise
-STATIC_FILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
