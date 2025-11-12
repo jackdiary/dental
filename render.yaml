@@ -1,7 +1,7 @@
 services:
   # 1. PostgreSQL 데이터베이스 서비스
   - name: db
-    type: psql
+    type: postgres
     plan: free # 무료 플랜으로 시작 (필요시 유료 플랜으로 변경 가능)
     pvs:
       size: 1 # 1GB 스토리지
@@ -26,7 +26,7 @@ services:
     envVars:
       - key: DATABASE_URL
         fromService:
-          type: psql
+          type: postgres
           name: db
           property: connectionString # db 서비스의 연결 문자열을 가져옴
       - key: REDIS_URL
