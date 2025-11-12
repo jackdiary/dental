@@ -38,8 +38,8 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.4
 
+staticSites:
   - name: frontend
-    type: static_site
     plan: free
     autoDeploy: true
     buildCommand: |
