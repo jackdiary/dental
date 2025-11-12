@@ -39,7 +39,7 @@ services:
         value: 3.11.4
 
   - name: frontend
-    type: static
+    type: static_site
     plan: free
     autoDeploy: true
     buildCommand: |
