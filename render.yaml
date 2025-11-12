@@ -9,6 +9,7 @@ services:
   - name: redis
     type: redis
     plan: free
+    ipAllowList: []
 
   - name: backend
     type: web
@@ -18,7 +19,6 @@ services:
     dockerContext: .
     autoDeploy: true
     dockerCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
-    preDeployCommand: python manage.py migrate
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -57,4 +57,4 @@ services:
         fromService:
           type: web
           name: backend
-          property: url
+          property: host
