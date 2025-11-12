@@ -46,6 +46,9 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy project source code
 COPY . /app/
 
+# Collect static files
+RUN python manage.py collectstatic --noinput
+
 # Create directories
 RUN mkdir -p /app/logs /app/ml_models /app/staticfiles /app/media \
     && chmod -R 755 /app/logs /app/staticfiles /app/media
