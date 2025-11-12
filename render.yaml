@@ -41,7 +41,7 @@ services:
   - name: frontend
     type: web
     env: static
-    plan: free
+    plan: starter
     autoDeploy: true
     buildCommand: |
       cd frontend
