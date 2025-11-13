@@ -1,7 +1,25 @@
 import axios from 'axios';
 
 // API 기본 설정
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const getApiBaseUrl = () => {
+  const rawUrl = import.meta.env.VITE_API_URL;
+  if (!rawUrl) {
+    return 'http://localhost:8000/api';
+  }
+
+  let normalized = rawUrl.trim();
+
+  // 프로토콜이 없으면 HTTPS로 보정 (Render host 등)
+  if (!/^https?:\/\//i.test(normalized)) {
+    normalized = `https://${normalized}`;
+  }
+
+  // 뒤에 /api가 없으면 추가 (중복 슬래시는 제거)
+  const trimmed = normalized.replace(/\/+$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
