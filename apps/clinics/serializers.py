@@ -6,6 +6,7 @@ class ClinicListSerializer(serializers.ModelSerializer):
     """치과 목록용 시리얼라이저"""
     aspect_scores = serializers.SerializerMethodField()
     comprehensive_score = serializers.SerializerMethodField()
+    price_info = serializers.SerializerMethodField()
     has_parking = serializers.BooleanField()
     night_service = serializers.BooleanField()
     weekend_service = serializers.BooleanField()
@@ -17,7 +18,7 @@ class ClinicListSerializer(serializers.ModelSerializer):
             'website', 'latitude', 'longitude', 'average_rating', 
             'total_reviews', 'is_verified', 'created_at',
             'has_parking', 'night_service', 'weekend_service', 
-            'aspect_scores', 'comprehensive_score'
+            'aspect_scores', 'comprehensive_score', 'price_info'
         ]
 
     def get_comprehensive_score(self, obj):
@@ -67,6 +68,29 @@ class ClinicListSerializer(serializers.ModelSerializer):
                 'facility': 3.5,
                 'overtreatment': 3.5
             }
+
+    def get_price_info(self, obj):
+        """리스트용 요약 가격 정보 (치료별 평균)"""
+        try:
+            from apps.analysis.models import PriceData
+            prices = PriceData.objects.filter(clinic=obj)
+            summary = {}
+            for price in prices:
+                entry = summary.setdefault(price.treatment_type, {'total': 0, 'count': 0})
+                entry['total'] += price.price
+                entry['count'] += 1
+                entry['currency'] = price.currency
+            result = {}
+            for treatment, data in summary.items():
+                if data['count'] > 0:
+                    result[treatment] = {
+                        'average_price': int(data['total'] / data['count']),
+                        'price_count': data['count'],
+                        'currency': data.get('currency', 'KRW'),
+                    }
+            return result
+        except Exception:
+            return {}
 
 
 class ClinicDetailSerializer(serializers.ModelSerializer):

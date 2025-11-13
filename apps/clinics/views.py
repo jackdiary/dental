@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count, Avg
+from django.db.models.functions import Coalesce
 from .models import Clinic
 from .serializers import (
     ClinicListSerializer, 
@@ -25,6 +26,12 @@ class ClinicPagination(PageNumberPagination):
 class ClinicListCreateView(generics.ListCreateAPIView):
     """치과 목록 조회 및 생성"""
     queryset = Clinic.objects.all()
+    
+    # 정렬에 사용할 기본 지표 주입 (NULL일 때 0으로 처리)
+    queryset = queryset.annotate(
+        avg_rating_filled=Coalesce('average_rating', 0.0),
+        total_reviews_filled=Coalesce('total_reviews', 0)
+    )
     permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = ClinicPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -123,11 +130,11 @@ def clinic_search(request):
     
     # 정렬
     if sort == 'recommended':
-        queryset = queryset.order_by('-total_reviews', '-average_rating')
+        queryset = queryset.order_by('-total_reviews_filled', '-avg_rating_filled')
     elif sort == 'rating':
-        queryset = queryset.order_by('-average_rating', '-total_reviews')
+        queryset = queryset.order_by('-avg_rating_filled', '-total_reviews_filled')
     elif sort == 'reviews':
-        queryset = queryset.order_by('-total_reviews')
+        queryset = queryset.order_by('-total_reviews_filled', '-avg_rating_filled')
     elif sort == 'name':
         queryset = queryset.order_by('name')
     else:

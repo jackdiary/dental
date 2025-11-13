@@ -119,10 +119,9 @@ export const FACILITY_OPTIONS = [
 // 정렬 옵션
 export const SORT_OPTIONS = [
   { value: 'recommended', label: '추천순' },
-  { value: 'rating', label: '평점순' },
-  { value: 'reviews', label: '리뷰많은순' },
-  { value: 'price', label: '가격순' },
-  { value: 'distance', label: '거리순' }
+  { value: 'rating', label: '평점 높은순' },
+  { value: 'reviews', label: '리뷰 많은순' },
+  { value: 'name', label: '이름순' }
 ];
 
 // 평점 옵션

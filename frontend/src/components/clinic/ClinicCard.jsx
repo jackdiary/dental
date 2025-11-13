@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { getTreatmentName } from '../../constants/common';
 
 const CardContainer = styled.div`
   background: ${props => props.theme.colors.white};
@@ -85,7 +86,7 @@ const ScoreSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
+  gap: 6px;
 `;
 
 const OverallScore = styled.div`
@@ -106,6 +107,11 @@ const ScoreValue = styled.div`
 `;
 
 const ScoreLabel = styled.span`
+  font-size: ${props => props.theme.fonts.sizes.sm};
+  color: ${props => props.theme.colors.textSecondary};
+`;
+
+const SecondaryScore = styled.div`
   font-size: ${props => props.theme.fonts.sizes.sm};
   color: ${props => props.theme.colors.textSecondary};
 `;
@@ -251,50 +257,19 @@ function ClinicCard({ clinic }) {
     price_info
   } = clinic;
 
-  // 치과별로 다른 가격 정보를 생성하는 함수
-  const generatePriceInfo = () => {
-    if (price_info && price_info.length > 0) {
-      return price_info;
-    }
+  const ratingValue = Number(average_rating ?? 0);
+  const comprehensiveValue = Number(comprehensive_score ?? ratingValue);
 
-    // 치과 ID를 기반으로 다양한 가격 생성
-    const treatments = [
-      { name: '스케일링', basePrice: 80000, variation: 0.3 },
-      { name: '임플란트', basePrice: 1200000, variation: 0.25 },
-      { name: '충치치료', basePrice: 150000, variation: 0.4 },
-      { name: '신경치료', basePrice: 300000, variation: 0.35 },
-      { name: '크라운', basePrice: 800000, variation: 0.3 },
-      { name: '브릿지', basePrice: 1500000, variation: 0.2 },
-      { name: '틀니', basePrice: 2000000, variation: 0.4 },
-      { name: '교정', basePrice: 4000000, variation: 0.5 },
-      { name: '화이트닝', basePrice: 400000, variation: 0.6 },
-      { name: '발치', basePrice: 100000, variation: 0.5 }
-    ];
-
-    // 치과 ID를 시드로 사용하여 일관된 랜덤 가격 생성
-    const seed = id ? parseInt(id.toString().slice(-3)) || 1 : Math.random() * 1000;
-
-    // 각 치과마다 3-4개의 치료 항목을 랜덤하게 선택
-    const numTreatments = 3 + (seed % 2);
-    const selectedTreatments = [];
-
-    for (let i = 0; i < numTreatments; i++) {
-      const treatmentIndex = (seed + i * 17) % treatments.length;
-      const treatment = treatments[treatmentIndex];
-
-      if (!selectedTreatments.find(t => t.treatment === treatment.name)) {
-        // 가격 변동 적용
-        const variation = (((seed + i * 23) % 100) / 100 - 0.5) * treatment.variation;
-        const finalPrice = Math.round(treatment.basePrice * (1 + variation) / 10000) * 10000;
-
-        selectedTreatments.push({
-          treatment: treatment.name,
-          price: Math.max(finalPrice, treatment.basePrice * 0.5) // 최소 50% 가격 보장
-        });
-      }
-    }
-
-    return selectedTreatments.slice(0, 3); // 최대 3개까지만 표시
+  const buildPriceEntries = () => {
+    if (!price_info) return [];
+    return Object.entries(price_info)
+      .map(([treatment, info]) => ({
+        treatment: getTreatmentName(treatment),
+        price: info?.average_price || 0,
+      }))
+      .filter(item => item.price > 0)
+      .sort((a, b) => a.price - b.price)
+      .slice(0, 3);
   };
 
   const formatPrice = (price) => {
@@ -327,13 +302,16 @@ function ClinicCard({ clinic }) {
 
           <ScoreSection>
             <OverallScore>
-              <ScoreValue score={comprehensive_score}>
-                {comprehensive_score.toFixed(1)}
+              <ScoreValue score={ratingValue}>
+                {ratingValue.toFixed(1)}
               </ScoreValue>
-              <ScoreLabel>종합점수</ScoreLabel>
+              <ScoreLabel>평균 평점</ScoreLabel>
             </OverallScore>
+            <SecondaryScore>
+              종합점수 {comprehensiveValue.toFixed(1)}
+            </SecondaryScore>
             <ReviewCount>
-              리뷰 {total_reviews?.toLocaleString() || 0}개
+              리뷰 {(total_reviews || 0).toLocaleString()}개
             </ReviewCount>
           </ScoreSection>
         </CardHeader>
@@ -343,7 +321,7 @@ function ClinicCard({ clinic }) {
             <AspectScore key={key}>
               <AspectLabel>{getAspectLabel(key)}</AspectLabel>
               <AspectValue score={score}>
-                {score.toFixed(1)}
+                {Number(score ?? 0).toFixed(1)}
               </AspectValue>
             </AspectScore>
           ))}
@@ -380,12 +358,12 @@ function ClinicCard({ clinic }) {
         </Features>
 
         {(() => {
-          const priceData = generatePriceInfo();
-          return priceData && priceData.length > 0 && (
+          const priceEntries = buildPriceEntries();
+          return priceEntries.length > 0 && (
             <PriceInfo>
-              <PriceTitle>주요 치료 가격</PriceTitle>
+              <PriceTitle>주요 치료 평균 가격</PriceTitle>
               <PriceList>
-                {priceData.map((item, index) => (
+                {priceEntries.map((item, index) => (
                   <PriceItem key={index}>
                     <span className="treatment">{item.treatment}</span>
                     {' '}
