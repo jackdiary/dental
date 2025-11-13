@@ -531,7 +531,7 @@ function ClinicDetailPage() {
             
             <ScoreSection>
               <OverallScore>
-                <ScoreValue>{(clinic.average_rating || 0).toFixed(1)}</ScoreValue>
+                <ScoreValue>{Number(clinic.average_rating ?? clinic.rating ?? 0).toFixed(1)}</ScoreValue>
                 <ScoreLabel>종합 점수</ScoreLabel>
               </OverallScore>
               <ReviewCount>
@@ -550,7 +550,7 @@ function ClinicDetailPage() {
                   <AspectItem key={key}>
                     <AspectLabel>{getAspectLabel(key)}</AspectLabel>
                     <AspectScore score={score}>
-                      {score.toFixed(1)}
+                      {Number(score ?? 0).toFixed(1)}
                     </AspectScore>
                   </AspectItem>
                 ))}
