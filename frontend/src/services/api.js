@@ -11,6 +11,10 @@ const getApiBaseUrl = () => {
 
   // 프로토콜이 없으면 HTTPS로 보정 (Render host 등)
   if (!/^https?:\/\//i.test(normalized)) {
+    // Render 서비스 참조 값처럼 도메인이 빠진 경우 자동으로 .onrender.com을 붙인다
+    if (!normalized.includes('.')) {
+      normalized = `${normalized}.onrender.com`;
+    }
     normalized = `https://${normalized}`;
   }
 
