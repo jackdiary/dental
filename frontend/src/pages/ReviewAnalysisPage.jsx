@@ -214,6 +214,26 @@ const ReviewsCount = styled.p`
   font-size: 0.9rem;
 `;
 
+const LoadMoreButton = styled.button`
+  display: block;
+  margin: 24px auto 32px;
+  padding: 12px 32px;
+  border-radius: 999px;
+  background: ${props => props.theme.colors.primary};
+  color: white;
+  font-weight: 600;
+  transition: background 0.2s;
+
+  &:hover {
+    background: ${props => props.theme.colors.primaryDark};
+  }
+
+  &:disabled {
+    background: ${props => props.theme.colors.gray400};
+    cursor: not-allowed;
+  }
+`;
+
 const ReviewItem = styled.div`
   padding: 20px 24px;
   border-bottom: 1px solid ${props => props.theme.colors.gray200};
@@ -289,6 +309,7 @@ function ReviewAnalysisPage() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [visibleReviewCount, setVisibleReviewCount] = useState(10);
 
 
 
@@ -327,6 +348,7 @@ function ReviewAnalysisPage() {
 
       setAnalysisData(analysisResponse.data);
       setReviews(reviewsResponse.data.results || []);
+      setVisibleReviewCount(10);
     } catch (error) {
       console.error('리뷰 분석 데이터 로드 실패:', error);
       setAnalysisData(null);
@@ -479,8 +501,9 @@ function ReviewAnalysisPage() {
                 </ReviewsHeader>
 
                 {reviews.length > 0 ? (
-                  reviews.slice(0, 10).map((review, index) => (
-                    <ReviewItem key={index}>
+                  <>
+                    {reviews.slice(0, visibleReviewCount).map((review, index) => (
+                    <ReviewItem key={review.id ?? index}>
                       <ReviewHeader>
                         <ReviewRating>
                           <Stars>{renderStars(review.original_rating)}</Stars>
@@ -492,7 +515,13 @@ function ReviewAnalysisPage() {
                       <ReviewText>{review.original_text}</ReviewText>
 
                     </ReviewItem>
-                  ))
+                    ))}
+                    {reviews.length > visibleReviewCount && (
+                      <LoadMoreButton onClick={() => setVisibleReviewCount(prev => prev + 10)}>
+                        더보기
+                      </LoadMoreButton>
+                    )}
+                  </>
                 ) : (
                   <EmptyState>
                     <h3>리뷰가 없습니다</h3>
