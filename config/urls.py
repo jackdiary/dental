@@ -17,7 +17,7 @@ urlpatterns = [
     path('api/alive/', liveness_check, name='liveness_check'),
     # Favicon and other root-level static files
     path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico', permanent=True)),
-    path('favicon.svg', RedirectView.as_as_view(url='/static/favicon.svg', permanent=True)),
+    path('favicon.svg', RedirectView.as_view(url='/static/favicon.svg', permanent=True)),
 ]
 
 # Serve static and media files
