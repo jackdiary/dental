@@ -43,8 +43,8 @@ services:
     env: static
     autoDeploy: true
     buildCommand: |
-      cd frontend
-      npm install
+      cd frontend &&
+      npm install &&
       npm run build
     staticPublishPath: ./frontend/dist
     routes:
