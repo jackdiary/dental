@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  base: '/static/', // 이 줄을 추가합니다.
+  base: '/', // 정적 파일이 /static 아래에 한 번만 붙도록 루트 경로 사용
   plugins: [react()],
   server: {
     port: 3000,
