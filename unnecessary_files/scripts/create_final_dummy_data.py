@@ -444,15 +444,15 @@ def create_test_users():
             username='admin',
             email='admin@dentalai.com',
             password='admin123!',
-            name='관리자'
+            first_name='관리자'
         )
         print("  ✅ 관리자 계정 생성: admin / admin123!")
     
     # 일반 사용자 계정들
     test_users = [
-        {'username': 'testuser1', 'email': 'test1@example.com', 'name': '김철수'},
-        {'username': 'testuser2', 'email': 'test2@example.com', 'name': '이영희'},
-        {'username': 'testuser3', 'email': 'test3@example.com', 'name': '박민수'},
+        {'username': 'testuser1', 'email': 'test1@example.com', 'first_name': '김철수'},
+        {'username': 'testuser2', 'email': 'test2@example.com', 'first_name': '이영희'},
+        {'username': 'testuser3', 'email': 'test3@example.com', 'first_name': '박민수'},
     ]
     
     for user_data in test_users:
@@ -461,7 +461,7 @@ def create_test_users():
                 username=user_data['username'],
                 email=user_data['email'],
                 password='test123!',
-                name=user_data['name']
+                first_name=user_data['first_name']
             )
             print(f"  ✅ 사용자 생성: {user_data['username']} / test123!")
     
