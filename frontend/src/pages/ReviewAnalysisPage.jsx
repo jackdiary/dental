@@ -307,9 +307,12 @@ function ReviewAnalysisPage() {
   const [clinics, setClinics] = useState([]);
   const [analysisData, setAnalysisData] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [reviewPage, setReviewPage] = useState(1);
+  const [reviewHasMore, setReviewHasMore] = useState(false);
+  const [reviewTotalCount, setReviewTotalCount] = useState(0);
+  const [loadingMoreReviews, setLoadingMoreReviews] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [visibleReviewCount, setVisibleReviewCount] = useState(10);
 
 
 
@@ -331,6 +334,31 @@ function ReviewAnalysisPage() {
     }
   };
 
+  const fetchReviews = async (clinicId, page = 1, append = false) => {
+    try {
+      const params = { page, page_size: 10 };
+      const response = await analysisAPI.getClinicReviewsWithAnalysis(clinicId, params);
+      const data = response.data || {};
+      const newResults = data.results || data.reviews || [];
+      setReviews(prev => append ? [...prev, ...newResults] : newResults);
+      setReviewPage(page);
+      const totalCount = data.count ?? data.total_count ?? (append ? newResults.length : newResults.length);
+      setReviewTotalCount(totalCount);
+      const pageSize = data.page_size ?? params.page_size;
+      const totalPages = data.total_pages ?? (pageSize ? Math.ceil((totalCount || 0) / pageSize) : page);
+      setReviewHasMore(page < totalPages);
+    } catch (error) {
+      console.error('리뷰 데이터 로드 실패:', error);
+      if (!append) {
+        setReviews([]);
+        setReviewTotalCount(0);
+        setReviewHasMore(false);
+        setReviewPage(1);
+      }
+      throw error;
+    }
+  };
+
   const handleSearch = async () => {
     if (!selectedClinic) {
       alert('치과를 선택해주세요.');
@@ -341,20 +369,29 @@ function ReviewAnalysisPage() {
     setHasSearched(true);
 
     try {
-      const [analysisResponse, reviewsResponse] = await Promise.all([
-        analysisAPI.getClinicAnalysis(selectedClinic),
-        analysisAPI.getClinicReviewsWithAnalysis(selectedClinic)
-      ]);
-
+      const analysisResponse = await analysisAPI.getClinicAnalysis(selectedClinic);
       setAnalysisData(analysisResponse.data);
-      setReviews(reviewsResponse.data.results || []);
-      setVisibleReviewCount(10);
+      await fetchReviews(selectedClinic, 1, false);
     } catch (error) {
       console.error('리뷰 분석 데이터 로드 실패:', error);
       setAnalysisData(null);
       setReviews([]);
+      setReviewTotalCount(0);
+      setReviewHasMore(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLoadMoreReviews = async () => {
+    if (!reviewHasMore || loadingMoreReviews) return;
+    setLoadingMoreReviews(true);
+    try {
+      await fetchReviews(selectedClinic, reviewPage + 1, true);
+    } catch (error) {
+      // 이미 콘솔에 로그됨
+    } finally {
+      setLoadingMoreReviews(false);
     }
   };
 
@@ -497,12 +534,14 @@ function ReviewAnalysisPage() {
               <ReviewsSection>
                 <ReviewsHeader>
                   <ReviewsTitle>최근 리뷰</ReviewsTitle>
-                  <ReviewsCount>{reviews.length}개의 리뷰</ReviewsCount>
+                  <ReviewsCount>
+                    총 {(reviewTotalCount || reviews.length).toLocaleString()}개의 리뷰
+                  </ReviewsCount>
                 </ReviewsHeader>
 
                 {reviews.length > 0 ? (
                   <>
-                    {reviews.slice(0, visibleReviewCount).map((review, index) => (
+                    {reviews.map((review, index) => (
                     <ReviewItem key={review.id ?? index}>
                       <ReviewHeader>
                         <ReviewRating>
@@ -516,9 +555,9 @@ function ReviewAnalysisPage() {
 
                     </ReviewItem>
                     ))}
-                    {reviews.length > visibleReviewCount && (
-                      <LoadMoreButton onClick={() => setVisibleReviewCount(prev => prev + 10)}>
-                        더보기
+                    {reviewHasMore && (
+                      <LoadMoreButton onClick={handleLoadMoreReviews} disabled={loadingMoreReviews}>
+                        {loadingMoreReviews ? '불러오는 중...' : `더보기 (${Math.max((reviewTotalCount || 0) - reviews.length, 0)}개 남음)`}
                       </LoadMoreButton>
                     )}
                   </>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { clinicAPI, reviewAPI } from '../services/api';
+import { getTreatmentName } from '../constants/common';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const DetailContainer = styled.div`
@@ -493,17 +494,30 @@ function ClinicDetailPage() {
   }
 
   // 실제 API 데이터 사용 (clinic 객체에서)
+  const aspectScores = clinic.aspect_scores || {
+    price: 0,
+    skill: 0,
+    kindness: 0,
+    waiting: 0,
+    facility: 0,
+    overtreatment: 0
+  };
+
+  const priceEntries = (() => {
+    if (!clinic.price_info) return [];
+    if (Array.isArray(clinic.price_info)) {
+      return clinic.price_info;
+    }
+    return Object.entries(clinic.price_info).map(([treatment, info]) => ({
+      treatment: getTreatmentName(treatment),
+      average_price: info?.average_price || info?.price || 0,
+      price_count: info?.price_count || 0,
+    })).filter(item => item.average_price > 0);
+  })();
+
   const mockData = {
     comprehensive_score: clinic.average_rating || 0,
-    aspect_scores: clinic.aspect_scores || {
-      price: 0,
-      skill: 0,
-      kindness: 0,
-      waiting: 0,
-      facility: 0,
-      overtreatment: 0
-    },
-    price_info: clinic.price_info || []
+    aspect_scores: aspectScores
   };
 
   return (
@@ -546,7 +560,7 @@ function ClinicDetailPage() {
             <Section>
               <SectionTitle>측면별 평가</SectionTitle>
               <AspectScores>
-                {Object.entries(mockData.aspect_scores).map(([key, score]) => (
+                {Object.entries(aspectScores).map(([key, score]) => (
                   <AspectItem key={key}>
                     <AspectLabel>{getAspectLabel(key)}</AspectLabel>
                     <AspectScore score={score}>
@@ -569,13 +583,13 @@ function ClinicDetailPage() {
                 {clinic.weekend_service && (
                   <FeatureTag positive>주말 진료</FeatureTag>
                 )}
-                {mockData.aspect_scores.overtreatment >= 4.0 && (
+                {aspectScores.overtreatment >= 4.0 && (
                   <FeatureTag positive>과잉진료 없음</FeatureTag>
                 )}
-                {mockData.aspect_scores.price >= 4.0 && (
+                {aspectScores.price >= 4.0 && (
                   <FeatureTag positive>합리적 가격</FeatureTag>
                 )}
-                {mockData.aspect_scores.skill >= 4.0 && (
+                {aspectScores.skill >= 4.0 && (
                   <FeatureTag positive>실력 인정</FeatureTag>
                 )}
               </FeaturesList>
@@ -677,18 +691,26 @@ function ClinicDetailPage() {
                   <thead>
                     <tr>
                       <th>치료</th>
-                      <th>가격</th>
-                      <th>지역 평균</th>
+                      <th>평균 가격</th>
+                      <th>데이터 수</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {mockData.price_info.map((item, index) => (
-                      <tr key={index}>
-                        <td>{item.treatment}</td>
-                        <td className="price">{formatPrice(item.price)}</td>
-                        <td>{formatPrice(item.region_avg)}</td>
+                    {priceEntries.length > 0 ? (
+                      priceEntries.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.treatment}</td>
+                          <td className="price">{formatPrice(item.average_price)}</td>
+                          <td>{item.price_count || 0}개</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="3" style={{ textAlign: 'center', color: '#666' }}>
+                          등록된 가격 정보가 없습니다.
+                        </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </Table>
               </PriceTable>
