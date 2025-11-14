@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticate
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q, Count, Avg
+from django.db.models import Q, Count, Avg, Value, DecimalField, IntegerField
 from django.db.models.functions import Coalesce
 from .models import Clinic
 from .serializers import (
@@ -29,8 +29,16 @@ class ClinicListCreateView(generics.ListCreateAPIView):
     
     # 정렬에 사용할 기본 지표 주입 (NULL일 때 0으로 처리)
     queryset = queryset.annotate(
-        avg_rating_filled=Coalesce('average_rating', 0.0),
-        total_reviews_filled=Coalesce('total_reviews', 0)
+        avg_rating_filled=Coalesce(
+            'average_rating',
+            Value(0),
+            output_field=DecimalField(max_digits=3, decimal_places=2)
+        ),
+        total_reviews_filled=Coalesce(
+            'total_reviews',
+            Value(0),
+            output_field=IntegerField()
+        )
     )
     permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = ClinicPagination
